@@ -44,8 +44,6 @@ levels = Levels(WIN)
 # Draw window
 def draw_window(lives, level, start_game):
 
-    WIN.fill((249, 254, 255))
-
     for spell in spells.spells:
         WIN.blit(spells.spell_img, spell)
 
@@ -87,6 +85,13 @@ def next_level():
         return True
 
 
+def timer_bar(current_time, level_time):
+    current = current_time
+    elapsed_time = current_time - level_time
+    time_left = elapsed_time / 30000
+    pygame.draw.rect(WIN, (56, 56, 54), pygame.Rect(100, 450, 700 * time_left, 50))
+
+
 # Main game function
 def main():
 
@@ -94,14 +99,20 @@ def main():
 
     # Game Settings
     lives = 5
-    timer = 30
+    current_time = 0
+    level_time = 0
+
     current_level = 1
+
     start_game = False
 
     while run:
 
         CLOCK.tick(FPS)
+        current_time = pygame.time.get_ticks()
 
+        WIN.fill((249, 254, 255))
+        timer_bar(current_time, level_time)
         draw_window(lives, current_level, start_game)
 
         if start_game:
@@ -120,6 +131,7 @@ def main():
             spells.handle_spells()
 
             if next_level():
+                level_time = pygame.time.get_ticks()
                 pygame.time.delay(500)
                 current_level += 1
                 start_level(current_level)
@@ -129,6 +141,9 @@ def main():
             start_game = False
             current_level = 1
             lives = 5
+
+        if current_time - level_time > 30000:
+            pygame.event.post(pygame.event.Event(PLAYER_HIT))
 
         pygame.display.update()
 
@@ -140,6 +155,7 @@ def main():
                 pygame.quit()
 
             if event.type == pygame.MOUSEBUTTONUP:
+                level_time = pygame.time.get_ticks()
                 start_level(current_level)
                 start_game = True
 
@@ -156,6 +172,7 @@ def main():
 
             if event.type == PLAYER_HIT:
                 reset_level(current_level)
+                level_time = pygame.time.get_ticks()
                 lives -= 1
 
 
